@@ -1,6 +1,6 @@
 import asyncHandler from '../middleware/asyncHandler.js';
 import User from '../models/userModel.js';
-import generateToken from '../routes/generateToken.js';
+import generateToken from '../utils/generateToken.js';
 // separate controllers for more cleaner code 
 // @desc   Auth user and get token
 // @route   POST /api/users/login
