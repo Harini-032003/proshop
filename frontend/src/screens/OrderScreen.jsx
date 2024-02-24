@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import {PayPalButtons, usePayPalScriptReducer} from '@paypal/react-paypal-js'
 import Message from '../components/Message';
 import Loader from '../components/Loader';
-import { useGetOrderDetailsQuery, usePayOrderMutation, useGetPayPalClientIdQuery} from '../slices/ordersApiSlice';
+import { useGetOrderDetailsQuery, usePayOrderMutation, useGetPayPalClientIdQuery,useDeliverOrderMutation} from '../slices/ordersApiSlice';
 
 
 const OrderScreen = () => {
@@ -14,6 +14,8 @@ const OrderScreen = () => {
   const {data: order, refetch, isLoading, error} = useGetOrderDetailsQuery(orderId);
 
   const [payOrder, {isLoading: loadingPay}] = usePayOrderMutation();
+
+  const [deliveredOrder, {isLoading: loadingDeliver}] = useDeliverOrderMutation();
 
   const [{ isPending}, paypalDisptach] = usePayPalScriptReducer();
 
@@ -53,12 +55,13 @@ const OrderScreen = () => {
       }
     });
   }
+   // TESTING ONLY..REMOVE BEFORE PRODUCTION
+  // async function onApproveTest() {
+  //   await payOrder({ orderId, details: { payer: {} } });
+  //   refetch();
 
-  async function onApproveTest() {
-    await payOrder( {orderId, details: {payer: {} }});
-    refetch();
-    toast.success('Payment successful');
-  }
+  //   toast.success('Order is paid');
+  // }
 
   function onError(err) {
     toast.error(err.message);
@@ -78,7 +81,16 @@ const OrderScreen = () => {
       return orderId;
     });
   }
-
+  
+  const deliverOrderHandler = async () => {
+    try {
+      await deliveredOrder(orderId);
+      refetch();
+      toast.success('Order delivered');
+    } catch (err) {
+      toast.error(err?.data?.message || err.message);
+    }
+  }
 
   return isLoading ? <Loader /> : error ? <Message variant="danger" /> : (
     <>
@@ -197,7 +209,14 @@ const OrderScreen = () => {
 
 
               
-               {/* mark as delivered placeholder */}
+               { loadingDeliver && <Loader />} {/*this is how you put an if statement in return i.e if loading then render the loader component*/}
+               {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
+                <ListGroup.Item>
+                  <Button type='button' className='btn btn-block' onClick={deliverOrderHandler}>
+                    Mark As Delivered
+                  </Button>
+                </ListGroup.Item>
+               )}
             </ListGroup>
           </Card>
         </Col>
