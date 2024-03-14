@@ -33,6 +33,19 @@ app.get('/api/config/paypal', (req,res) =>  res.send({ clientId: process.env.PAY
 const __dirname = path.resolve();//set __dirname to current directory
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); 
 
+if (process.env.NODE_ENV === 'production') {
+  //set static folder
+  app.use(express.static(path.join(__dirname, '/frontend/build')));
+
+  app.get('*', (req, res) =>
+    res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'))
+  );// if the user wants to access any endpoint that is not available redirect to home page
+} else {
+
+  app.get('/', (req, res) => {
+    res.send('API is running....');
+  });
+}
 
 app.use(notFound);
 app.use(errorHandler);
