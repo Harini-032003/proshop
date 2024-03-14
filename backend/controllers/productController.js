@@ -6,11 +6,13 @@ import Product from '../models/productModel.js';
 // @access  Public
 //getProducts function to fetch products
 const getProducts = asyncHandler(async (req, res) => {
-  const pageSize = 4; // no of products in one page
+  const pageSize = 8; // no of products in one page
   const page = Number(req.query.pageNumber) || 1;
-  const count = await Product.countDocuments(); 
 
-  const products = await Product.find({})
+  const keyword= req.query.keyword ? { name: { $regex: req.query.keyword, $options: 'i'}} : {};
+  const count = await Product.countDocuments({...keyword}); 
+
+  const products = await Product.find({...keyword})
   .limit(pageSize)
   .skip(pageSize * (page -1)); //skip the products of previous page in current page
   res.json({products, page, pages: Math.ceil(count / pageSize)}); //object containing products, current page and pages
@@ -129,6 +131,13 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 });
+// @desc    Get top rated products
+// @route   GET /api/products/top
+// @access  Public
+const getTopProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({}).sort({ rating: -1}).limit(3);
+  res.status(200).json(products);
+});
 
 
-export { getProducts, getProductById, createProduct, updateProduct, deleteProduct, createProductReview };
+export { getProducts, getProductById, createProduct, updateProduct, deleteProduct, createProductReview,getTopProducts, };
